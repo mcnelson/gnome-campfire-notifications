@@ -9,3 +9,5 @@ A Ruby script that spawns GNOME desktop notifications when something is said in 
 
 
 Since this is a hackjob so far, you have to manually populate `$username_cache` by watching the output and matching up what is said in the chatoom to the correct user ID. See the script for an example.
+
+Disclaimer: Work in progress. Gemifying soon.

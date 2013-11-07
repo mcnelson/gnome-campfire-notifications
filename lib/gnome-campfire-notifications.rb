@@ -1,38 +1,25 @@
 require "twitter/json_stream"
-require "json"
-require "yaml"
 require "net/http"
+require "json"
 
 class GnomeCampfireNotifications
   HOST = 'streaming.campfirenow.com'
+  ATTR_MAP = {
+    room_name:  'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME',
+    room_id:    'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID',
+    token:      'GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN'
+  }
 
-  def self.start
-    room_name = ENV['GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME']
-    room_id = ENV['GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID']
-    token   = ENV['GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN']
-
-    unless room_name && room_id && token
-      raise "please set GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID and GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN"
+  def initialize
+    if (missing = ATTR_MAP.values.select { |env| ENV[env].empty? }).any?
+      raise "please set environment variable(s) #{missing.join(', ')}"
     end
 
-    new(
-      path:       "/room/#{room_id}/live.json",
-      host:       HOST,
-      auth:       "#{token}:x",
-      token:      token,
-      room_name:  room_name
-    )
-  end
-
-  def initialize(options)
-    @options = options
+    @options = ATTR_MAP.map.with_object({}) { |(key, env), opts| opts[key] = ENV[env] }
     @username_cache = []
-    listen
   end
 
-  private
-
-  def listen
+  def start
     on_message do |item|
       username = get_username(item["user_id"].to_i)
       message = "#{item["body"].to_s.gsub(/'/, "\'")}"
@@ -41,9 +28,16 @@ class GnomeCampfireNotifications
     end
   end
 
+  private
+
   def on_message
     EventMachine::run do
-      stream = Twitter::JSONStream.connect(@options)
+      stream = Twitter::JSONStream.connect(
+        host:  HOST,
+        path: "/room/#{room_id}/live.json",
+        auth: "#{token}:x",
+      )
+
 
       stream.each_item do |item|
         json = JSON::parse(item)
@@ -78,5 +72,13 @@ class GnomeCampfireNotifications
 
   def room_url
     "#{@options[:room_name]}.campfirenow.com"
+  end
+
+  def room_id
+    @options[:room_id]
+  end
+
+  def token
+    @options[:token]
   end
 end

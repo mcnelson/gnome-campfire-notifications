@@ -45,7 +45,13 @@ class GnomeCampfireNotifications
     EventMachine::run do
       stream = Twitter::JSONStream.connect(@options)
 
-      stream.each_item { |i| yield(JSON.parse(i)) if i["type"] == "TextMessage" }
+      stream.each_item do |item|
+        json = JSON::parse(item)
+        if json["type"] == "TextMessage"
+          yield(json)
+        end
+      end
+
       stream.on_error { |m| puts "ERROR: #{m.inspect}" }
       stream.on_max_reconnects { |timeout, retries| puts "Tried #{retries} times to connect." }
     end

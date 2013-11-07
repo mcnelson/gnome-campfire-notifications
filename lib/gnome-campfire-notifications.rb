@@ -33,23 +33,19 @@ class GnomeCampfireNotifications
   private
 
   def listen
-    on_stream_item do |item|
-      if item["type"] == "TextMessage"
-        username = get_username(item["user_id"].to_i)
-        message = "'#{ item["body"].to_s.gsub(/'/, '\"') }'"
+    on_message do |item|
+      username = get_username(item["user_id"].to_i)
+      message = "#{item["body"].to_s.gsub(/'/, "\'")}"
 
-        puts "WHO IS: #{item["user_id"]} - #{item["body"]}" if username == "Unknown"
-
-        system("notify-send --hint=int:transient:1 -u low '#{username}' #{message}")
-      end
+      system("notify-send --hint=int:transient:1 -u low '#{username}' '#{message}'")
     end
   end
 
-  def on_stream_item
+  def on_message
     EventMachine::run do
       stream = Twitter::JSONStream.connect(@options)
 
-      stream.each_item { |i| yield(JSON.parse(i)) }
+      stream.each_item { |i| yield(JSON.parse(i)) if item["type"] == "TextMessage" }
       stream.on_error { |m| puts "ERROR: #{m.inspect}" }
       stream.on_max_reconnects { |timeout, retries| puts "Tried #{retries} times to connect." }
     end

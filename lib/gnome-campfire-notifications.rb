@@ -17,6 +17,7 @@ class GnomeCampfireNotifications
 
     @options = ATTR_MAP.map.with_object({}) { |(key, env), opts| opts[key] = ENV[env] }
     @username_cache = []
+    try_icon
   end
 
   def start
@@ -24,7 +25,7 @@ class GnomeCampfireNotifications
       username = get_username(item["user_id"].to_i)
       message = "#{item["body"].to_s.gsub(/'/, "\'")}"
 
-      system("notify-send --hint=int:transient:1 -u low '#{username}' '#{message}'")
+      system("notify-send --hint=int:transient:1 -u low#{icon} '#{username}' '#{message}'")
     end
   end
 
@@ -37,7 +38,6 @@ class GnomeCampfireNotifications
         path: "/room/#{room_id}/live.json",
         auth: "#{token}:x",
       )
-
 
       stream.each_item do |item|
         json = JSON::parse(item)
@@ -68,6 +68,25 @@ class GnomeCampfireNotifications
     end
 
     @username_cache[id]
+  end
+
+  def icon
+    " -i #{@options[:icon_path]}"
+  end
+
+  def try_icon
+    system_path = "/usr/share/icons/gnome/32x32/apps/campfire.png"
+    gem_path = "#{gem_dir}/assets/campfire.png"
+
+    if File.exists?(gem_path)
+      @options[:icon_path] = gem_path
+    elsif File.exists?(system_path)
+      @options[:icon_path] = system_path
+    end
+  end
+
+  def gem_dir
+    Gem::Specification.find_by_name("gnome-campfire-notifications").gem_dir
   end
 
   def room_url

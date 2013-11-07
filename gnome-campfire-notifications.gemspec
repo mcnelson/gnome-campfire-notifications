@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.description = "A Ruby script that spawns GNOME desktop notifications when something is said in your Campfire chatroom."
   s.authors     = ["Michael Nelson"]
   s.email       = 'michael@nelsonware.com'
-  s.files       = ["lib/gnome-campfire-notifications.rb"]
+  s.files       = ["lib/gnome-campfire-notifications.rb", "assets/campfire.png"]
   s.executables << "gnome-campfire-notifications"
   s.homepage    = 'https://rubygems.org/gems/example'
 

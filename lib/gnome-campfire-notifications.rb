@@ -1,32 +1,31 @@
 require "twitter/json_stream"
 require "json"
 require "yaml"
+require "net/http"
 
 class GnomeCampfireNotifications
   HOST = 'streaming.campfirenow.com'
 
   def self.start
+    room_name = ENV['GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME']
     room_id = ENV['GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID']
     token   = ENV['GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN']
-    raise "please set GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID and GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN"
+
+    unless room_name && room_id && token
+      raise "please set GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID and GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN"
+    end
 
     new(
-      path: "/room/#{room_id}/live.json",
-      host: HOST,
-      auth: "#{token}:x"
+      path:       "/room/#{room_id}/live.json",
+      host:       HOST,
+      auth:       "#{token}:x",
+      room_name:  room_name
     )
   end
 
   def initialize(options)
-    @options = {
-      :path => "/room/#{ENV['GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID']}/live.json",
-      :host => 'streaming.campfirenow.com',
-      :auth => "#{ENV['GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN']}:x"
-    }
-
+    @options = options
     @username_cache = []
-    @username_cache[123456] = "Username"
-
     listen
   end
 
@@ -35,12 +34,10 @@ class GnomeCampfireNotifications
   def listen
     on_stream_item do |item|
       if item["type"] == "TextMessage"
-        username = get_username(item["user_id"].to_i)
-        message = "'#{ item["body"].to_s.gsub(/'/, '\"') }'"
-
-        puts "WHO IS: #{item["user_id"]} - #{item["body"]}" if username == "Unknown"
-
-        system("notify-send --hint=int:transient:1 -u low '#{username}' #{message}")
+        get_username(item["user_id"].to_i) do |username|
+          message = "'#{ item["body"].to_s.gsub(/'/, '\"') }'"
+          system("notify-send --hint=int:transient:1 -u low '#{username}' #{message}")
+        end
       end
     end
   end
@@ -56,12 +53,21 @@ class GnomeCampfireNotifications
   end
 
   def get_username(id)
-    return "Unknown" if id.nil?
-    unless @username_cache[id]
-      # Get username
-      @username_cache[id] = "Unknown"
-    end
+    if @username_cache[id]
+      yield(@username_cache[id])
+    else
+      http = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
+      http.basic_auth(@options[:token], "x")
+      Net::HTTP.start(room_url, 443) do |response|
+        json = JSON.parse(response.body)
+        @username_cache[id] = json["user"]["name"]
 
-    @username_cache[id]
+        yield(@username_cache[id])
+      end
+    end
+  end
+
+  def room_url
+    "#{@options[:room_name]}.campfirenow.com"
   end
 end

@@ -19,6 +19,7 @@ class GnomeCampfireNotifications
       path:       "/room/#{room_id}/live.json",
       host:       HOST,
       auth:       "#{token}:x",
+      token:      token,
       room_name:  room_name
     )
   end
@@ -34,10 +35,12 @@ class GnomeCampfireNotifications
   def listen
     on_stream_item do |item|
       if item["type"] == "TextMessage"
-        get_username(item["user_id"].to_i) do |username|
-          message = "'#{ item["body"].to_s.gsub(/'/, '\"') }'"
-          system("notify-send --hint=int:transient:1 -u low '#{username}' #{message}")
-        end
+        username = get_username(item["user_id"].to_i)
+        message = "'#{ item["body"].to_s.gsub(/'/, '\"') }'"
+
+        puts "WHO IS: #{item["user_id"]} - #{item["body"]}" if username == "Unknown"
+
+        system("notify-send --hint=int:transient:1 -u low '#{username}' #{message}")
       end
     end
   end
@@ -53,18 +56,22 @@ class GnomeCampfireNotifications
   end
 
   def get_username(id)
-    if @username_cache[id]
-      yield(@username_cache[id])
-    else
-      http = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
-      http.basic_auth(@options[:token], "x")
-      Net::HTTP.start(room_url, 443) do |response|
-        json = JSON.parse(response.body)
-        @username_cache[id] = json["user"]["name"]
+    return "Unknown" if id.nil?
 
-        yield(@username_cache[id])
-      end
+    unless @username_cache[id]
+      req = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
+      req.basic_auth(@options[:token], "x")
+      http = Net::HTTP.new(room_url, 443)
+      http.use_ssl = true
+      resp = http.start { |h| h.request(req) }
+
+      json = JSON.parse(resp.body)
+
+      # Get username
+      @username_cache[id] = json["user"]["name"]
     end
+
+    @username_cache[id]
   end
 
   def room_url

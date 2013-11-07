@@ -4,6 +4,9 @@ require "json"
 
 class GnomeCampfireNotifications
   HOST = 'streaming.campfirenow.com'
+  NOTIFICATION_GFX_FILENAME = 'campfire.png'
+  NOTIFICATION_GFX_SYSPATH = "/usr/share/icons/gnome/32x32/apps"
+
   ATTR_MAP = {
     room_name:  'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME',
     room_id:    'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID',
@@ -75,14 +78,14 @@ class GnomeCampfireNotifications
   end
 
   def try_icon
-    system_path = "/usr/share/icons/gnome/32x32/apps/campfire.png"
-    gem_path = "#{gem_dir}/assets/campfire.png"
-
-    if File.exists?(gem_path)
-      @options[:icon_path] = gem_path
-    elsif File.exists?(system_path)
-      @options[:icon_path] = system_path
+    if path = notification_gfx_paths.detect { |p| File.exists?(p) }
+      @options[:icon_path] = path
     end
+  end
+
+  def notification_gfx_paths
+    [[NOTIFICATION_GFX_SYSPATH, NOTIFICATION_GFX_FILENAME],
+     [gem_dir, "assets", NOTIFICATION_GFX_FILENAME]].join('/')
   end
 
   def gem_dir

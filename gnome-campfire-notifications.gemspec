@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.authors     = ["mcnelson"]
   s.email       = 'michael@nelsonware.com'
   s.files       = ["lib/gnome-campfire-notifications.rb"]
-  s.homepage    = 'https://rubygems.org/gems/example'
+  s.homepage    = 'https://github.com/mcnelson/gnome-campfire-notifications'
 
   s.add_dependency 'twitter-stream'
 end

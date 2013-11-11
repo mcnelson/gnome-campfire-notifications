@@ -85,7 +85,7 @@ class GnomeCampfireNotifications
 
   def notification_gfx_paths
     [[NOTIFICATION_GFX_SYSPATH, NOTIFICATION_GFX_FILENAME],
-     [gem_dir, "assets", NOTIFICATION_GFX_FILENAME]].join('/')
+     [gem_dir, "assets", NOTIFICATION_GFX_FILENAME]].map { |p| p.join('/') }
   end
 
   def gem_dir

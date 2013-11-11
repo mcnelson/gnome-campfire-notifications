@@ -25,11 +25,32 @@ class GnomeCampfireNotifications
 
   def start
     on_message do |item|
-      username = get_username(item["user_id"].to_i)
-      message = "#{item["body"].to_s.gsub(/'/, "\'")}"
-
-      system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(message)}\"")
+      send_notification(item)
     end
+  end
+
+  def send_notification(item)
+    username = get_username(item["user_id"].to_i)
+    system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(item["body"])}\"")
+  end
+
+  def get_username(id)
+    return "Unknown" if id.nil?
+
+    unless @username_cache[id]
+      req = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
+      req.basic_auth(@options[:token], "x")
+      http = Net::HTTP.new(room_url, 443)
+      http.use_ssl = true
+      resp = http.start { |h| h.request(req) }
+
+      json = JSON.parse(resp.body)
+
+      # Get username
+      @username_cache[id] = json["user"]["name"]
+    end
+
+    @username_cache[id]
   end
 
   private
@@ -52,25 +73,6 @@ class GnomeCampfireNotifications
       stream.on_error { |m| puts "ERROR: #{m.inspect}" }
       stream.on_max_reconnects { |timeout, retries| puts "Tried #{retries} times to connect." }
     end
-  end
-
-  def get_username(id)
-    return "Unknown" if id.nil?
-
-    unless @username_cache[id]
-      req = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
-      req.basic_auth(@options[:token], "x")
-      http = Net::HTTP.new(room_url, 443)
-      http.use_ssl = true
-      resp = http.start { |h| h.request(req) }
-
-      json = JSON.parse(resp.body)
-
-      # Get username
-      @username_cache[id] = json["user"]["name"]
-    end
-
-    @username_cache[id]
   end
 
   def icon

@@ -11,7 +11,7 @@ class GnomeCampfireNotifications
     room_name:  'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME',
     room_id:    'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID',
     token:      'GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN',
-    self_user:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER_ID'
+    self_user:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER'
   }
   REQUIRED = %i(room_name room_id token)
 
@@ -33,9 +33,9 @@ class GnomeCampfireNotifications
 
   def send_notification(item)
     user_id = item["user_id"].to_i
+    username = get_username(user_id)
 
-    unless is_self_user?(user_id)
-      username = get_username(user_id)
+    unless is_self_user?(username)
       system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(item["body"])}\"")
     end
   end
@@ -96,8 +96,8 @@ class GnomeCampfireNotifications
      [gem_dir, "assets", NOTIFICATION_GFX_FILENAME]].map { |p| p.join('/') }
   end
 
-  def is_self_user?(user_id)
-    @options[:self_user] && user_id == @options[:self_user].to_i
+  def is_self_user?(username)
+    @options[:self_user] && username == @options[:self_user]
   end
 
   def gem_dir

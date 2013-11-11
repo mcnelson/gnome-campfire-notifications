@@ -17,9 +17,7 @@ class GnomeCampfireNotifications
   REQUIRED = %i(room_name room_id token)
 
   def initialize
-    if (missing = ATTR_MAP.values.select { |env| ENV[env].empty? if REQUIRED.include?(ATTR_MAP.key(env)) }).any?
-      raise "please set environment variable(s) #{missing.join(', ')}"
-    end
+    verify_env_variables
 
     @options = ATTR_MAP.map.with_object({}) { |(key, env), opts| opts[key] = ENV[env] }
     @username_cache = []
@@ -61,6 +59,12 @@ class GnomeCampfireNotifications
 
   private
 
+  def verify_env_variables
+    if (missing = ATTR_MAP.values.select { |env| ENV[env].empty? if REQUIRED.include?(ATTR_MAP.key(env)) }).any?
+      raise "please set environment variable(s) #{missing.join(', ')}"
+    end
+  end
+
   def on_message
     EventMachine::run do
       stream = Twitter::JSONStream.connect(
@@ -83,10 +87,7 @@ class GnomeCampfireNotifications
 
   def should_send?(username, body)
     return false if @options[:self_user] && username == @options[:self_user]
-
-    if @options[:self_only]
-      return body.include?(@options[:self_user])
-    end
+    return body.include?(@options[:self_user]) if @options[:self_only]
 
     true
   end

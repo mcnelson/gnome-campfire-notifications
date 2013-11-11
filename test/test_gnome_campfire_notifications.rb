@@ -24,11 +24,13 @@ describe GnomeCampfireNotifications do
 
     describe "when self_user environment var is set" do
       it "doesn't notify and returns nil" do
-        ENV['GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER_ID'] = '1'
+        ENV['GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER'] = 'Derp Herpinson'
         input = {"user_id" => '1', "body" => 'I should never be sent'}
 
-        gcn = GnomeCampfireNotifications.new
-        assert_equal nil, gcn.send_notification(input)
+        VCR.use_cassette('get_username') do
+          gcn = GnomeCampfireNotifications.new
+          assert_equal nil, gcn.send_notification(input)
+        end
       end
     end
   end

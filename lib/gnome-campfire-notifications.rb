@@ -28,7 +28,7 @@ class GnomeCampfireNotifications
       username = get_username(item["user_id"].to_i)
       message = "#{item["body"].to_s.gsub(/'/, "\'")}"
 
-      system("notify-send --hint=int:transient:1 -u low#{icon} '#{username}' '#{message}'")
+      system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(message)}\"")
     end
   end
 
@@ -102,5 +102,9 @@ class GnomeCampfireNotifications
 
   def token
     @options[:token]
+  end
+
+  def escape_double_quotes(string)
+    string.gsub(/"/, '\"')
   end
 end

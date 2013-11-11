@@ -9,5 +9,6 @@ Gem::Specification.new do |s|
   s.files       = ["lib/gnome-campfire-notifications.rb", "assets/campfire.png"]
   s.homepage    = 'https://github.com/mcnelson/gnome-campfire-notifications'
 
-  s.add_dependency 'twitter-stream'
+  s.add_dependency              'twitter-stream'
+  s.add_development_dependency  'minitest'
 end

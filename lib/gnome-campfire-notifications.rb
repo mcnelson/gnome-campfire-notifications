@@ -10,11 +10,13 @@ class GnomeCampfireNotifications
   ATTR_MAP = {
     room_name:  'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME',
     room_id:    'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID',
-    token:      'GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN'
+    token:      'GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN',
+    self_user:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER_ID'
   }
+  REQUIRED = %i(room_name room_id token)
 
   def initialize
-    if (missing = ATTR_MAP.values.select { |env| ENV[env].empty? }).any?
+    if (missing = ATTR_MAP.values.select { |env| ENV[env].empty? if REQUIRED.include?(ATTR_MAP.key(env)) }).any?
       raise "please set environment variable(s) #{missing.join(', ')}"
     end
 
@@ -30,8 +32,12 @@ class GnomeCampfireNotifications
   end
 
   def send_notification(item)
-    username = get_username(item["user_id"].to_i)
-    system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(item["body"])}\"")
+    user_id = item["user_id"].to_i
+
+    unless is_self_user?(user_id)
+      username = get_username(user_id)
+      system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(item["body"])}\"")
+    end
   end
 
   def get_username(id)
@@ -88,6 +94,10 @@ class GnomeCampfireNotifications
   def notification_gfx_paths
     [[NOTIFICATION_GFX_SYSPATH, NOTIFICATION_GFX_FILENAME],
      [gem_dir, "assets", NOTIFICATION_GFX_FILENAME]].map { |p| p.join('/') }
+  end
+
+  def is_self_user?(user_id)
+    @options[:self_user] && user_id == @options[:self_user].to_i
   end
 
   def gem_dir

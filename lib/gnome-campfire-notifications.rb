@@ -11,7 +11,8 @@ class GnomeCampfireNotifications
     room_name:  'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME',
     room_id:    'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID',
     token:      'GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN',
-    self_user:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER'
+    self_user:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER',
+    self_only:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_ONLY'
   }
   REQUIRED = %i(room_name room_id token)
 
@@ -32,10 +33,9 @@ class GnomeCampfireNotifications
   end
 
   def send_notification(item)
-    user_id = item["user_id"].to_i
-    username = get_username(user_id)
+    username = get_username(item["user_id"].to_i)
 
-    unless is_self_user?(username)
+    if should_send?(username, item["body"])
       system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(item["body"])}\"")
     end
   end
@@ -81,6 +81,19 @@ class GnomeCampfireNotifications
     end
   end
 
+  def should_send?(username, body)
+    require 'pry'; binding.pry
+    return false if @options[:self_user] && username == @options[:self_user]
+
+    if @options[:self_only]
+      true if body.include?(@options[:self_user])
+    else
+      false
+    end
+
+    true
+  end
+
   def icon
     " -i #{@options[:icon_path]}"
   end
@@ -94,10 +107,6 @@ class GnomeCampfireNotifications
   def notification_gfx_paths
     [[NOTIFICATION_GFX_SYSPATH, NOTIFICATION_GFX_FILENAME],
      [gem_dir, "assets", NOTIFICATION_GFX_FILENAME]].map { |p| p.join('/') }
-  end
-
-  def is_self_user?(username)
-    @options[:self_user] && username == @options[:self_user]
   end
 
   def gem_dir

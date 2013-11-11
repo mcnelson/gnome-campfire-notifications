@@ -33,6 +33,35 @@ describe GnomeCampfireNotifications do
         end
       end
     end
+
+    describe "with self_user & self_only vars are set" do
+      before do
+        ENV['GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER'] = 'Derp Herpinson'
+        ENV['GNOME_CAMPFIRE_NOTIFICATIONS_SELF_ONLY'] = 'true'
+      end
+
+      describe "message contains user name" do
+        it "sends notification and returns true" do
+          input = {"user_id" => '1', "body" => 'Derp Herpinson: yo wassup'}
+
+          VCR.use_cassette('get_username') do
+            gcn = GnomeCampfireNotifications.new
+            assert_equal true, gcn.send_notification(input)
+          end
+        end
+      end
+
+      describe "message doesn't contain user name" do
+        it "doesn't notify and returns nil" do
+          input = {"user_id" => '1', "body" => 'I should never be sent'}
+
+          VCR.use_cassette('get_username') do
+            gcn = GnomeCampfireNotifications.new
+            assert_equal nil, gcn.send_notification(input)
+          end
+        end
+      end
+    end
   end
 
   describe "#get_username" do

@@ -5,7 +5,7 @@ A Ruby script that spawns GNOME desktop notifications when something is said in 
 Set environment variables:
 - `GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN` - Campfire API access token (under My info in the chatroom web app).
 - `GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID` - Room ID. It's the last segment in the Campfire URL: `https://whatever.campfirenow.com/room/123456`
-- `GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME` - Room name. "sample" as in "sample.theclymb.com"
+- `GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME` - Room name. "sample" as in "sample.campfirenow.com"
 
 `gem install gnome-campfire-notifications`
 

@@ -44,7 +44,7 @@ describe GnomeCampfireNotifications do
         it "sends notification and returns true" do
           input = {"user_id" => '1', "body" => 'Derp Herpinson: yo wassup'}
 
-          VCR.use_cassette('get_username') do
+          VCR.use_cassette('get_username_alt') do
             gcn = GnomeCampfireNotifications.new
             assert_equal true, gcn.send_notification(input)
           end
@@ -55,7 +55,7 @@ describe GnomeCampfireNotifications do
         it "doesn't notify and returns nil" do
           input = {"user_id" => '1', "body" => 'I should never be sent'}
 
-          VCR.use_cassette('get_username') do
+          VCR.use_cassette('get_username_alt') do
             gcn = GnomeCampfireNotifications.new
             assert_equal nil, gcn.send_notification(input)
           end

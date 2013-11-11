@@ -1,0 +1,27 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://abcdefg12345678:x@example.campfirenow.com/users/1.json
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - ! '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+    body:
+      encoding: US-ASCII
+      string: ! '{"user":{"type":"Member","avatar_url":"http://dge9rmgqjs8m1.cloudfront.net/global/64b5bd6e09f22260d1d2260466dfee98949813aa18d3513ba144086f4f1be319d90518e63e8f0f373ff065346132b66d158e40e4e19e8251f96d96f4326913992aaaaaf702b91432e5e1d250f4575725/avatar.gif?r=3","admin":false,"name":"Jane
+        Doe","created_at":"2012/06/14 20:04:54 +0000","id":1218200,"email_address":"derp@herpinson.com"}}'
+    http_version: 
+  recorded_at: Mon, 11 Nov 2013 04:20:13 GMT
+recorded_with: VCR 2.7.0

@@ -82,13 +82,10 @@ class GnomeCampfireNotifications
   end
 
   def should_send?(username, body)
-    require 'pry'; binding.pry
     return false if @options[:self_user] && username == @options[:self_user]
 
     if @options[:self_only]
-      true if body.include?(@options[:self_user])
-    else
-      false
+      return body.include?(@options[:self_user])
     end
 
     true

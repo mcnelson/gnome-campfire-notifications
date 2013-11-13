@@ -1,6 +1,13 @@
 require_relative 'helper'
 
 describe GnomeCampfireNotifications do
+  describe "#load_config" do
+    it "loads correct values" do
+      gcn = GnomeCampfireNotifications.new
+      gcn.load_config
+    end
+  end
+
   describe "#send_notification" do
     it "returns true" do
       input = {"user_id" => '1', "body" => 'hi'}

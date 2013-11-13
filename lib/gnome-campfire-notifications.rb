@@ -7,19 +7,15 @@ class GnomeCampfireNotifications
   NOTIFICATION_GFX_FILENAME = 'campfire.png'
   NOTIFICATION_GFX_SYSPATH = "/usr/share/icons/gnome/32x32/apps"
 
-  ATTR_MAP = {
-    room_name:  'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_NAME',
-    room_id:    'GNOME_CAMPFIRE_NOTIFICATIONS_ROOM_ID',
-    token:      'GNOME_CAMPFIRE_NOTIFICATIONS_TOKEN',
-    self_user:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_USER',
-    self_only:  'GNOME_CAMPFIRE_NOTIFICATIONS_SELF_ONLY'
-  }
-  REQUIRED = %i(room_name room_id token)
+  CONFIG_SYSPATH = "#{ENV['HOME']}/.campfire.yml"
+  CONFIG_ATTRS = %w(token subdomain roomid self_user filter)
+  REQD_CONFIG_ATTRS = %w(token subdomain roomid)
+
+  attr_reader :config
 
   def initialize
-    verify_env_variables
+    load_config
 
-    @options = ATTR_MAP.map.with_object({}) { |(key, env), opts| opts[key] = ENV[env] }
     @username_cache = []
     try_icon
   end
@@ -43,7 +39,7 @@ class GnomeCampfireNotifications
 
     unless @username_cache[id]
       req = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
-      req.basic_auth(@options[:token], "x")
+      req.basic_auth(@config[:token], "x")
       http = Net::HTTP.new(room_url, 443)
       http.use_ssl = true
       resp = http.start { |h| h.request(req) }
@@ -57,20 +53,23 @@ class GnomeCampfireNotifications
     @username_cache[id]
   end
 
-  private
+  def load_config
+    raise "please create #{CONFIG_SYSPATH}, see Github page for details" unless File.exists?(CONFIG_SYSPATH)
+    @config = YAML.load_file(CONFIG_SYSPATH)
 
-  def verify_env_variables
-    if (missing = ATTR_MAP.values.select { |env| ENV[env].empty? if REQUIRED.include?(ATTR_MAP.key(env)) }).any?
-      raise "please set environment variable(s) #{missing.join(', ')}"
+    if !(missing = REQD_CONFIG_ATTRS.delete_if { |k| @config[k] }).empty?
+      raise "please set config option(s) in #{CONFIG_SYSPATH}: #{missing.join(', ')}"
     end
   end
+
+  private
 
   def on_message
     EventMachine::run do
       stream = Twitter::JSONStream.connect(
         host:  HOST,
-        path: "/room/#{room_id}/live.json",
-        auth: "#{token}:x",
+        path: "/room/#{@config[:roomid]}/live.json",
+        auth: "#{@config[:token]}:x",
       )
 
       stream.each_item do |item|
@@ -86,19 +85,19 @@ class GnomeCampfireNotifications
   end
 
   def should_send?(username, body)
-    return false if @options[:self_user] && username == @options[:self_user]
-    return body.include?(@options[:self_user]) if @options[:self_only]
+    return false if @config[:self_user] && username == @config[:self_user]
+    return body.include?(@config[:self_user]) if @config[:self_only]
 
     true
   end
 
   def icon
-    " -i #{@options[:icon_path]}"
+    " -i #{@config[:icon_path]}"
   end
 
   def try_icon
     if path = notification_gfx_paths.detect { |p| File.exists?(p) }
-      @options[:icon_path] = path
+      @config[:icon_path] = path
     end
   end
 
@@ -112,15 +111,7 @@ class GnomeCampfireNotifications
   end
 
   def room_url
-    "#{@options[:room_name]}.campfirenow.com"
-  end
-
-  def room_id
-    @options[:room_id]
-  end
-
-  def token
-    @options[:token]
+    "#{@config[:subdomain]}.campfirenow.com"
   end
 
   def escape_double_quotes(string)

@@ -14,9 +14,9 @@ class GnomeCampfireNotifications
   attr_reader :config
 
   def initialize
-    load_config
-
     @username_cache = []
+
+    load_config
     try_icon
   end
 
@@ -86,7 +86,7 @@ class GnomeCampfireNotifications
 
   def should_send?(username, body)
     return false if @config[:self_user] && username == @config[:self_user]
-    return body.include?(@config[:self_user]) if @config[:self_only]
+    return body.match?(@config[:filter]) if @config[:filter]
 
     true
   end

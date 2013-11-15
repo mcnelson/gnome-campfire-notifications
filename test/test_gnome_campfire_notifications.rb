@@ -5,14 +5,14 @@ describe GnomeCampfireNotifications do
     it "loads correct values" do
       gcn = GnomeCampfireNotifications.new
       gcn.load_dummy_config({
-        "token"     => 'foo',
-        "roomid"    => 'bar',
-        "room_name" => 'baz'
+        token:     'foo',
+        roomid:    'bar',
+        room_name: 'baz'
       })
 
-      assert_equal 'foo', gcn.config["token"]
-      assert_equal 'bar', gcn.config["roomid"]
-      assert_equal 'baz', gcn.config["room_name"]
+      assert_equal 'foo', gcn.config[:token]
+      assert_equal 'bar', gcn.config[:roomid]
+      assert_equal 'baz', gcn.config[:room_name]
     end
   end
 
@@ -42,7 +42,7 @@ describe GnomeCampfireNotifications do
     describe "when self_user is set & message sender is self_user" do
       it "doesn't notify and returns nil" do
         gcn = GnomeCampfireNotifications.new
-        gcn.load_dummy_config("self_user" => 'Derp Herpinson')
+        gcn.load_dummy_config(self_user: 'Derp Herpinson')
         input = {"user_id" => '1', "body" => 'I should never be sent'}
 
         VCR.use_cassette('get_username') do
@@ -55,8 +55,8 @@ describe GnomeCampfireNotifications do
       before do
         @gcn = GnomeCampfireNotifications.new
         @gcn.load_dummy_config(
-          "self_user" => 'Derp Herpinson',
-          "filter"    => /Derp Herpinson/
+          self_user: 'Derp Herpinson',
+          filter:    /Derp Herpinson/
         )
       end
 

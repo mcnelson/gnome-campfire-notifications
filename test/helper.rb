@@ -11,9 +11,9 @@ end
 GnomeCampfireNotifications.class_eval do
   def load_dummy_config(hash = {})
     @config = {
-      "token"     => 'abcdefg12345678',
-      "roomid"    => 1,
-      "subdomain" => 'example'
+      token:     'abcdefg12345678',
+      roomid:    1,
+      subdomain: 'example'
     }.merge(hash)
   end
 end

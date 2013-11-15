@@ -31,7 +31,7 @@ class GnomeCampfireNotifications
     username = get_username(item["user_id"].to_i)
 
     if should_send?(username, item["body"])
-      system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_double_quotes(item["body"])}\"")
+      system("notify-send --hint=int:transient:1 -u low#{icon} \"#{username}\" \"#{escape_for_bash(item["body"])}\"")
     end
   end
 
@@ -115,7 +115,7 @@ class GnomeCampfireNotifications
     "#{@config[:subdomain]}.campfirenow.com"
   end
 
-  def escape_double_quotes(string)
-    string.gsub(/"/, '\"')
+  def escape_for_bash(string)
+    string.gsub(/("|`)/, '\\\\\\1')
   end
 end

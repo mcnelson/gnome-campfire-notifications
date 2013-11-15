@@ -31,10 +31,10 @@ describe GnomeCampfireNotifications do
       it "returns true" do
         gcn = GnomeCampfireNotifications.new
         gcn.load_dummy_config
-        input = {"user_id" => '1', "body" => 'quote"s quote\'s'}
 
         gcn.stub(:get_username, 'Fred') do
-          assert_equal true, gcn.send_notification(input)
+          assert_equal true, gcn.send_notification({"user_id" => '1', "body" => 'quote"s quote\'s'})
+          assert_equal true, gcn.send_notification({"user_id" => '1', "body" => 'back `ticks`'})
         end
       end
     end

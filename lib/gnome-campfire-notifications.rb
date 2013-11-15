@@ -1,6 +1,7 @@
 require "twitter/json_stream"
 require "net/http"
 require "json"
+require "yaml"
 
 class GnomeCampfireNotifications
   HOST = 'streaming.campfirenow.com'

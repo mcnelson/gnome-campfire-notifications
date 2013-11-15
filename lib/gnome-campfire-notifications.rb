@@ -8,7 +8,7 @@ class GnomeCampfireNotifications
   NOTIFICATION_GFX_SYSPATH = "/usr/share/icons/gnome/32x32/apps"
 
   CONFIG_SYSPATH = "#{ENV['HOME']}/.campfire.yml"
-  CONFIG_ATTRS = %w(token subdomain roomid self_user filter)
+  CONFIG_ATTRS = %w(token subdomain roomid self_user filter icon_path)
   REQD_CONFIG_ATTRS = %w(token subdomain roomid)
 
   attr_reader :config
@@ -17,7 +17,7 @@ class GnomeCampfireNotifications
     @username_cache = []
 
     load_config
-    try_icon
+    try_icon unless @config["icon_path"]
   end
 
   def start
@@ -39,7 +39,7 @@ class GnomeCampfireNotifications
 
     unless @username_cache[id]
       req = Net::HTTP::Get.new("https://#{room_url}/users/#{id}.json")
-      req.basic_auth(@config[:token], "x")
+      req.basic_auth(@config["token"], "x")
       http = Net::HTTP.new(room_url, 443)
       http.use_ssl = true
       resp = http.start { |h| h.request(req) }
@@ -68,8 +68,8 @@ class GnomeCampfireNotifications
     EventMachine::run do
       stream = Twitter::JSONStream.connect(
         host:  HOST,
-        path: "/room/#{@config[:roomid]}/live.json",
-        auth: "#{@config[:token]}:x",
+        path: "/room/#{@config["roomid"]}/live.json",
+        auth: "#{@config["token"]}:x",
       )
 
       stream.each_item do |item|
@@ -85,19 +85,19 @@ class GnomeCampfireNotifications
   end
 
   def should_send?(username, body)
-    return false if @config[:self_user] && username == @config[:self_user]
-    return body.match?(@config[:filter]) if @config[:filter]
+    return false if @config["self_user"] && username == @config["self_user"]
+    return body.match(@config["filter"]) if @config["filter"]
 
     true
   end
 
   def icon
-    " -i #{@config[:icon_path]}"
+    " -i #{@config["icon_path"]}"
   end
 
   def try_icon
     if path = notification_gfx_paths.detect { |p| File.exists?(p) }
-      @config[:icon_path] = path
+      @config["icon_path"] = path
     end
   end
 
@@ -111,7 +111,7 @@ class GnomeCampfireNotifications
   end
 
   def room_url
-    "#{@config[:subdomain]}.campfirenow.com"
+    "#{@config["subdomain"]}.campfirenow.com"
   end
 
   def escape_double_quotes(string)

@@ -17,7 +17,7 @@ describe GnomeCampfireNotifications do
   end
 
   describe "#send_notification" do
-    it "returns true" do
+    it "works" do
       gcn = GnomeCampfireNotifications.new
       gcn.load_dummy_config
       input = {"user_id" => '1', "body" => 'hi'}
@@ -39,7 +39,7 @@ describe GnomeCampfireNotifications do
       end
     end
 
-    describe "when self_user environment var is set" do
+    describe "when self_user is set & message sender is self_user" do
       it "doesn't notify and returns nil" do
         gcn = GnomeCampfireNotifications.new
         gcn.load_dummy_config("self_user" => 'Derp Herpinson')
@@ -51,33 +51,31 @@ describe GnomeCampfireNotifications do
       end
     end
 
-    describe "with self_user & self_only vars are set" do
+    describe "when self_user & filter vars are set" do
       before do
         @gcn = GnomeCampfireNotifications.new
         @gcn.load_dummy_config(
           "self_user" => 'Derp Herpinson',
-          "filter" => /Derp Herpinson/
+          "filter"    => /Derp Herpinson/
         )
       end
 
-      describe "message contains user name" do
+      describe "message matches filter" do
         it "sends notification and returns true" do
           input = {"user_id" => '1', "body" => 'Derp Herpinson: yo wassup'}
 
           VCR.use_cassette('get_username_alt') do
-            assert_equal true, gcn.send_notification(input)
+            assert_equal true, @gcn.send_notification(input)
           end
         end
       end
 
-      describe "message doesn't contain user name" do
+      describe "message doesn't match filter" do
         it "doesn't notify and returns nil" do
           input = {"user_id" => '1', "body" => 'I should never be sent'}
-          gcn = GnomeCampfireNotifications.new
-          gcn.load_dummy_config
 
           VCR.use_cassette('get_username_alt') do
-            assert_equal nil, gcn.send_notification(input)
+            assert_equal nil, @gcn.send_notification(input)
           end
         end
       end

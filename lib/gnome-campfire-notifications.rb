@@ -87,7 +87,7 @@ class GnomeCampfireNotifications
 
   def should_send?(username, body)
     return false if @config[:self_user] && username == @config[:self_user]
-    return body.match(@config[:filter]) if @config[:filter]
+    return !body.match(@config[:filter]).nil? if @config[:filter]
 
     true
   end

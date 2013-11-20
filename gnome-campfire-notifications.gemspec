@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "gnome-campfire-notifications"
-  s.version     = "0.2.0"
+  s.version     = "0.2.1"
   s.summary     = "GNOME desktop notifications for Campfire."
   s.description = "A Ruby script that issues GNOME desktop notifications when something is said in your Campfire chatroom."
   s.authors     = ["Michael Nelson"]
